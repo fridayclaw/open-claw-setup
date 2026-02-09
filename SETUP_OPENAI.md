@@ -8,7 +8,7 @@ Set up OpenClaw using the OpenAI API (fast, reliable, costs money)
 
 ### 0. Variables (Edit Once)  
 ```bash  
-USER=friday  
+USER=<your agent name>  
 GATEWAY_PORT=18789  
 ```  
 
@@ -109,10 +109,10 @@ After=network-online.target
 Wants=network-online.target  
 [Service]  
 Type=simple  
-User=friday  
-WorkingDirectory=/home/friday  
-Environment=HOME=/home/friday  
-EnvironmentFile=/home/friday/.openclaw/.env  
+User=$USER  
+WorkingDirectory=/home/$USER  
+Environment=HOME=/home/$USER  
+EnvironmentFile=/home/$USER/.openclaw/.env  
 ExecStart=/usr/local/bin/openclaw gateway start --foreground  
 Restart=on-failure  
 RestartSec=3  
@@ -148,7 +148,7 @@ CONF
 #### OPTION A (Recommended): SSH Tunnel (No Public Exposure)  
 ```bash  
 # On your laptop:  
-ssh -L 18789:127.0.0.1:18789 friday@<VPS_IP>  
+ssh -L 18789:127.0.0.1:18789 $USER@<VPS_IP>  
 # Then open: http://127.0.0.1:18789  
 ```  
 
