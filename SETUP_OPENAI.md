@@ -1,36 +1,57 @@
-# SETUP_OPENAI.md (Ubuntu/Debian)  
-# Goal: OpenClaw using OpenAI API (fast, reliable, costs money)  
-## 0) Variables (edit once)  
+# OpenClaw Setup Instructions (Ubuntu/Debian)  
+## Goal  
+Set up OpenClaw using the OpenAI API (fast, reliable, costs money)  
+
+## Prerequisites  
+- **User:** `$USER` should be configured to a valid username.  
+- **Gateway Port:** Adjust `${GATEWAY_PORT}` as needed (default: 18789)  
+
+### 0. Variables (Edit Once)  
+```bash  
 USER=friday  
 GATEWAY_PORT=18789  
-## 1) Create user + sudo  
+```  
+
+### 1. Create User and Grant Sudo Privileges  
+```bash  
 sudo adduser $USER  
 sudo usermod -aG sudo $USER  
-## 2) Basic firewall (UFW)  
+```  
+
+### 2. Configure Basic Firewall (UFW)  
+```bash  
 sudo apt-get update  
 sudo apt-get install -y ufw  
 sudo ufw allow OpenSSH  
 sudo ufw allow ${GATEWAY_PORT}/tcp  
 sudo ufw --force enable  
 sudo ufw status  
-## 3) Install dependencies  
+```  
+
+### 3. Install Required Dependencies  
+```bash  
 sudo apt-get install -y curl ca-certificates git jq  
-## 4) Install OpenClaw  
-# Official install script  
+```  
+
+### 4. Install OpenClaw  
+```bash  
+# Official Install Script  
 curl -fsSL https://openclaw.ai/install.sh | sh  
 openclaw --version  
-## 5) Set OpenAI key for the daemon  
+```  
+
+### 5. Set OpenAI Key for Daemon  
+```bash  
 sudo -iu $USER mkdir -p ~/.openclaw  
 chmod 700 ~/.openclaw  
-# Put env vars where OpenClaw expects them (wizard uses this pattern too)  
 cat > ~/.openclaw/.env <<'ENV'  
 OPENAI_API_KEY=PASTE_YOUR_OPENAI_API_KEY_HERE  
 ENV  
 chmod 600 ~/.openclaw/.env  
-## 6) Write OpenClaw config (OpenAI provider)  
-# NOTE:  
-# - ChatGPT $20/mo (Plus) is NOT the same as API credits.  
-# - API uses OPENAI_API_KEY and bills per token.  
+```  
+
+### 6. Write OpenClaw Configuration (OpenAI Provider)  
+```bash  
 cat > ~/.openclaw/openclaw.json <<'JSON'  
 {  
   "gateway": {  
@@ -77,9 +98,10 @@ cat > ~/.openclaw/openclaw.json <<'JSON'
   }  
 }  
 JSON  
-# Validate/fix  
-openclaw doctor --fix  
-## 7) Systemd service (system service, runs as friday)  
+```  
+
+### 7. Systemd Service Setup  
+```bash  
 sudo tee /etc/systemd/system/openclaw.service >/dev/null <<'UNIT'  
 [Unit]  
 Description=OpenClaw AI Agent  
@@ -97,32 +119,37 @@ RestartSec=3
 [Install]  
 WantedBy=multi-user.target  
 UNIT  
-sudo systemctl daemon-reload  
-sudo systemctl enable --now openclaw  
-sudo systemctl status openclaw --no-pager  
-## 8) Helper commands  
-# Tail logs  
+```  
+
+### 8. Helpful Commands  
+#### Tail Logs  
+```bash  
 sudo journalctl -u openclaw -f  
-# Restart OpenClaw  
+```  
+#### Restart OpenClaw  
+```bash  
 sudo systemctl restart openclaw  
-# Stop OpenClaw  
+```  
+#### Stop OpenClaw  
+```bash  
 sudo systemctl stop openclaw  
-## 9) “Stop the restart loop” file (handy when config breaks)  
-# This makes systemd NOT restart on failure until you revert it.  
+```  
+
+### 9. Preventing Restart Loops  
+```bash  
 sudo mkdir -p /etc/systemd/system/openclaw.service.d  
 sudo tee /etc/systemd/system/openclaw.service.d/no-restart.conf >/dev/null <<'CONF'  
 [Service]  
 Restart=no  
 CONF  
-# Apply override + restart  
-sudo systemctl daemon-reload  
-sudo systemctl restart openclaw  
-# To revert (back to Restart=on-failure):  
-# sudo rm /etc/systemd/system/openclaw.service.d/no-restart.conf  
-# sudo systemctl daemon-reload  
-# sudo systemctl restart openclaw  
-## 10) Web UI access  
-# OPTION A (recommended): SSH tunnel (no public exposure)  
+```  
+
+### 10. Web UI Access  
+#### OPTION A (Recommended): SSH Tunnel (No Public Exposure)  
+```bash  
 # On your laptop:  
-# ssh -L 18789:127.0.0.1:18789 friday@<VPS_IP>  
+ssh -L 18789:127.0.0.1:18789 friday@<VPS_IP>  
 # Then open: http://127.0.0.1:18789  
+```  
+
+Feel free to reach out if you need further assistance or have questions!
