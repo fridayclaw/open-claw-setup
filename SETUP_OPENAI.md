@@ -65,7 +65,7 @@ cat > ~/.openclaw/openclaw.json <<'JSON'
   },  
   "agents": {  
     "defaults": {  
-      "workspace": "/home/friday/.openclaw/workspace",  
+      "workspace": "/home/$USER/.openclaw/workspace",  
       "model": "openai/gpt-4o-mini"  
     }  
   },  
